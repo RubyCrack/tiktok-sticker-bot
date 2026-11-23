@@ -6,32 +6,31 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-brightgreen.svg?style=flat-square)](SECURITY.md)
 
-Bot automatizado que intercepta stickers (estáticos y animados) desde TikTok Web y los exporta directamente a WhatsApp manteniendo el formato nativo cuadrado (512x512) y canal alfa transparente.
+Bot que captura stickers estáticos y animados de TikTok Web y los envía directamente a WhatsApp. Ajusta las imágenes WebP que no tienen formato cuadrado a 512 × 512 píxeles, conservando la transparencia del canal alfa.
 
----
+## Características
 
-## ⚡ Características
+- **Captura automática:** detecta stickers de los mensajes directos de TikTok mediante Playwright y su configuración Stealth.
+- **Procesamiento de imágenes:** utiliza Sharp para adaptar los stickers WebP no cuadrados a 512 × 512 píxeles con fondo transparente. Los stickers que ya son cuadrados, los WebP animados con más de 300 fotogramas y los vídeos `.mp4` se envían en su formato original.
+- **Cola de envíos:** procesa los stickers de forma secuencial, con un intervalo configurable y reintentos para reducir el riesgo de bloqueos en WhatsApp.
+- **Control de duplicados:** mantiene un registro local por destinatario mediante firmas MD5 y evita volver a enviar stickers que ya se han procesado.
+- **Comandos interactivos:** permite gestionar el bot en tiempo real desde la terminal o mediante un chat de WhatsApp.
+- **Sesiones persistentes:** guarda las sesiones de TikTok y WhatsApp para evitar tener que autenticarse cada vez que se inicia el servicio.
 
-- **Intercepción en tiempo real:** Captura automática de stickers de mensajes directos mediante Playwright con evasión de detección (*Stealth*).
-- **Procesamiento con Sharp:** Cuadra stickers WebP no cuadrados a 512×512 con fondo transparente (stickers ya cuadrados, WebP animados >300 fotogramas y vídeos `.mp4` se envían en su formato original).
-- **Cola antispam con reintentos:** Despacho secuencial configurable para proteger la cuenta contra bloqueos en WhatsApp.
-- **Deduplicación atómica:** Registro local por destinatario mediante firmas MD5 que evita envíos repetidos.
-- **Control interactivo:** Comandos en tiempo real disponibles tanto en la terminal como a través de WhatsApp.
-- **Sesión persistente:** Almacenamiento seguro de credenciales de TikTok y WhatsApp para evitar re-autenticaciones.
-
----
-
-## 🚀 Inicio Rápido
+## Inicio rápido
 
 ### 1. Requisitos
-- **Node.js** >= 18.0.0
-- **Google Chrome** o Chromium
+
+- Node.js >= 18.0.0
+- Google Chrome o Chromium
 
 ### 2. Instalación
 
+Clona el repositorio e instala las dependencias:
+
 ```bash
 # Clonar repositorio e instalar dependencias
-git clone https://github.com/tu-usuario/tiktok-sticker-bot.git
+git clone https://github.com/RubyCrack/tiktok-sticker-bot.git
 cd tiktok-sticker-bot
 npm install
 
@@ -41,11 +40,13 @@ npx playwright install chromium
 
 ### 3. Configuración
 
-Copia la plantilla `.env.example` y define tu número:
+Crea el archivo `.env` a partir de la plantilla `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
+
+Después, configura tu número de WhatsApp y los parámetros del bot:
 
 ```env
 # Tu número de WhatsApp con prefijo internacional (sin '+' ni espacios)
@@ -66,47 +67,54 @@ MAX_REINTENTOS_ENVIO=2
 CHROME_PATH=
 ```
 
----
+Puedes modificar estos valores según tus necesidades. `CHROME_PATH` es opcional y solo hace falta configurarlo cuando quieras utilizar una instalación de Chrome ubicada en una ruta personalizada.
 
-## 💻 Uso
+## Uso
 
-Inicia el servicio (`npm run dev` para recarga con nodemon, `npm test` para la suite en seco, `npm run graph` para servir el grafo en `127.0.0.1:3000`):
+Para iniciar el bot:
 
 ```bash
 npm start
 ```
 
-1. **Vincula WhatsApp:** Escanea el código QR que se mostrará en la terminal.
-2. **Inicia sesión en TikTok:** Se abrirá una ventana de Chromium en los mensajes directos de TikTok. Inicia sesión la primera vez; se guardará automáticamente en `tiktok_state.json`.
-3. **Exporta:** Navega por tus chats y reproduce o abre los stickers que desees enviar.
+También tienes disponibles estos comandos:
 
----
+| Comando | Función |
+|---|---|
+| `npm run dev` | Inicia el servicio con recarga automática mediante nodemon. |
+| `npm test` | Ejecuta la suite de pruebas en modo seco. |
+| `npm run graph` | Sirve el grafo en `127.0.0.1:3000`. |
 
-## 🕹️ Comandos
+La primera vez que ejecutes el bot tendrás que vincular tus cuentas:
 
-Puedes ejecutarlos desde la **consola de la terminal** o enviándotelos en un **chat contigo mismo en WhatsApp**:
+1. **Conecta WhatsApp:** escanea el código QR que aparecerá en la terminal.
+2. **Inicia sesión en TikTok:** se abrirá una ventana de Chromium con los mensajes directos de TikTok. Inicia sesión; el estado de la sesión se guardará automáticamente en `tiktok_state.json`.
+3. **Envía los stickers:** navega por tus conversaciones de TikTok y reproduce o abre los stickers que quieras exportar. El bot se encargará de capturarlos y enviarlos a WhatsApp.
+
+## Comandos disponibles
+
+Los comandos se pueden ejecutar desde la terminal o enviándolos en un chat contigo mismo en WhatsApp.
 
 | Comando | Acción |
 |---|---|
-| `!destino <numero>` | Solicita cambiar el receptor (ej: `!destino 34600112233`). Valida que exista y pide confirmación. |
-| `si` / `sí` / `no` | Confirma o cancela el cambio de destino pendiente. |
-| `!destino default` | Restablece el destino a tu propio número (`OWNER_NUMBER`). |
-| `!reset-db` / `!limpiar-db` | Vacía la cola activa y reinicia el historial de enviados para poder reenviar stickers pasados. |
+| `!destino <numero>` | Cambia el destinatario de los stickers. Por ejemplo, `!destino 34600112233`. El bot comprueba que el número exista y solicita confirmación antes de aplicar el cambio. |
+| `si` / `sí` / `no` | Confirma o cancela el cambio de destinatario pendiente. |
+| `!destino default` | Vuelve a utilizar tu propio número, definido en `OWNER_NUMBER`. |
+| `!reset-db` / `!limpiar-db` | Vacía la cola activa y reinicia el historial de stickers enviados. Esto permite volver a enviar stickers anteriores. |
 
----
+## Detener el servicio
 
-## 🛑 Detener el Servicio
+Para detener el bot, pulsa `Ctrl + C` en la terminal.
 
-Pulsa `Ctrl + C` en la terminal. El bot ejecuta un *graceful shutdown*:
-1. Cierra la consola, pausa/limpia la cola y guarda la sesión y cookies de TikTok de forma atómica.
-2. Cierra limpiamente las instancias de Chromium y WhatsApp Web.
-3. Vacía `temp/` y las cachés temporales del navegador en `.wwebjs_auth/`.
+El servicio realiza un cierre controlado (*graceful shutdown*) para guardar el estado y liberar los recursos utilizados:
 
----
+1. Cierra la consola, pausa y limpia la cola de envíos, y guarda la sesión y las cookies de TikTok de forma atómica.
+2. Cierra las instancias de Chromium y WhatsApp Web.
+3. Limpia el directorio `temp/` y las cachés temporales del navegador en `.wwebjs_auth/`.
 
-## ⚖️ Licencia, Legal y Privacidad
+## Licencia, aspectos legales y privacidad
 
-- **Licencia:** Distribuido bajo [GNU GPL v3.0](LICENSE).
-- **Términos de Uso:** Consulta [TERMS.md](TERMS.md) para avisos legales, descargo de responsabilidad y uso responsable.
-- **Privacidad:** Procesamiento 100% local y política de *Zero Telemetry*. Ver [PRIVACY.md](PRIVACY.md).
-- **Seguridad:** Reporte responsable de vulnerabilidades y aislamiento de credenciales en [SECURITY.md](SECURITY.md).
+- **Licencia:** el proyecto se distribuye bajo la licencia [GNU GPL v3.0](LICENSE).
+- **Términos de uso:** consulta [TERMS.md](TERMS.md) para conocer los avisos legales, el descargo de responsabilidad y las condiciones de uso responsable.
+- **Privacidad:** el procesamiento se realiza localmente y el proyecto sigue una política de *Zero Telemetry* (sin telemetría). Más información en [PRIVACY.md](PRIVACY.md).
+- **Seguridad:** las instrucciones para informar de vulnerabilidades de forma responsable y la información sobre el aislamiento de credenciales están disponibles en [SECURITY.md](SECURITY.md).
