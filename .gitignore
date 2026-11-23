@@ -1,0 +1,32 @@
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Dependencias
+node_modules/
+
+# Credenciales y configuración local
+.env
+
+# Sesión de WhatsApp (whatsapp-web.js con LocalAuth)
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Sesión de TikTok (cookies/tokens) - NUNCA subir esto, permite secuestrar la cuenta
+tiktok_state.json
+
+# Historial de stickers ya enviados (contiene tu número/destinos reales)
+stickers_enviados.json
+
+# Archivos temporales del bot
+temp/
+*.tmp.*
+
+# Logs
+*.log
+
+# Herramientas de agentes, IA y grafos internos
+.agents/
+.claude/
+AGENTS.md
+graphify-out/
